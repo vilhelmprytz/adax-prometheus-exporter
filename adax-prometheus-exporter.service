@@ -1,0 +1,19 @@
+[Unit]
+Description=adax-prometheus-exporter
+After=network.target
+ 
+[Service]
+Type=simple
+
+Restart=on-failure
+RestartSec=10
+startLimitIntervalSec=60
+
+ExecStart=/usr/bin/adax-prometheus-exporter --config /etc/adax-prometheus-exporter/config.yml
+
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=adax-prometheus-exporter
+ 
+[Install]
+WantedBy=multi-user.target
