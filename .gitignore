@@ -1,2 +1,4 @@
 config.yml
 adax-prometheus-exporter
+*.deb
+adax-prometheus-exporter_*
