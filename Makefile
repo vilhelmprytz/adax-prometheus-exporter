@@ -20,10 +20,13 @@ build:
 debian:
 	mkdir -p adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/usr/local/bin
 	mkdir -p adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/etc/systemd/system
+	mkdir -p adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/etc/adax-prometheus-exporter
+
 	cp adax-prometheus-exporter adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/usr/local/bin
 	cp adax-prometheus-exporter.service adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/etc/systemd/system
-	mkdir -p adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/DEBIAN
+	cp config.example.yml adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/etc/adax-prometheus-exporter/config.yml
 
+	mkdir -p adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/DEBIAN
 	rm -rf adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/DEBIAN/control
 	echo "Package: adax-prometheus-exporter" >> adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/DEBIAN/control
 	echo "Version: $(VERSION)" >> adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/DEBIAN/control
