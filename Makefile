@@ -24,9 +24,11 @@ debian:
 	cp adax-prometheus-exporter.service adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/etc/systemd/system
 	mkdir -p adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/DEBIAN
 
+	rm -rf adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/DEBIAN/control
 	echo "Package: adax-prometheus-exporter" >> adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/DEBIAN/control
 	echo "Version: $(VERSION)" >> adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/DEBIAN/control
 	echo "Architecture: $(ARCH)" >> adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/DEBIAN/control
+	echo "Section: Other" >> adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/DEBIAN/control
 	echo "Maintainer: Vilhelm Prytz <vilhelm@prytznet.se>" >> adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/DEBIAN/control
 	echo "Description: Prometheus expoter for Adax heaters" >> adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/DEBIAN/control
 
