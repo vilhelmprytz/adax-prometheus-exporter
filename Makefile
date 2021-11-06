@@ -29,6 +29,7 @@ debian:
 	echo "Version: $(VERSION)" >> adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/DEBIAN/control
 	echo "Architecture: $(ARCH)" >> adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/DEBIAN/control
 	echo "Section: Other" >> adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/DEBIAN/control
+	echo "Priority: 500" >> adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/DEBIAN/control
 	echo "Maintainer: Vilhelm Prytz <vilhelm@prytznet.se>" >> adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/DEBIAN/control
 	echo "Description: Prometheus expoter for Adax heaters" >> adax-prometheus-exporter_$(VERSION)-1_$(ARCH)/DEBIAN/control
 
