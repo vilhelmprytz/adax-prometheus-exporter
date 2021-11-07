@@ -11,9 +11,17 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v2"
+
+	_ "embed"
 )
 
+//go:embed version
+var version string
+
 func main() {
+	// read version at build
+	fmt.Println(version)
+
 	// get path to conifg file if path is specified
 	var configPath string
 	for i, s := range os.Args {
