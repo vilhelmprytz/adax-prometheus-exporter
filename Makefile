@@ -7,12 +7,15 @@ ifeq ($(UNAME),x86_64)
 	ARCH := amd64
 endif
 
-all: | clean build
+all: | clean build debian
 
 clean:
 	rm -rf adax-prometheus-exporter
 	rm -rf adax-prometheus-exporter_*
 	rm -rf *.deb
+
+run:
+	go run main.go -c config.yml
 
 build:
 	go build -o adax-prometheus-exporter

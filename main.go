@@ -19,8 +19,7 @@ import (
 var version string
 
 func main() {
-	// read version at build
-	fmt.Println(version)
+	log.Println("Running adax-prometheus-exporter v" + version)
 
 	// get path to conifg file if path is specified
 	var configPath string
@@ -41,7 +40,16 @@ func main() {
 
 	http.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.Write([]byte(getMetrics(config.ClientId, config.ClientSecret)))
+
+		resp, err := getMetrics(config.ClientId, config.ClientSecret)
+
+		if err != nil {
+			log.Println("ERROR", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			resp = "Internal server error"
+		}
+
+		w.Write([]byte(resp))
 	})
 	log.Println("Listening on port", config.Port)
 	log.Fatal(http.ListenAndServe(":"+fmt.Sprint(config.Port), nil))
@@ -66,7 +74,7 @@ func readConfig(path string) Config {
 	return config
 }
 
-func getToken(ClientId string, ClientSecret string) string {
+func getToken(ClientId string, ClientSecret string) (string, error) {
 	data := url.Values{
 		"grant_type": {"password"},
 		"username":   {ClientId},
@@ -76,31 +84,38 @@ func getToken(ClientId string, ClientSecret string) string {
 	client := &http.Client{}
 	r, err := http.NewRequest("POST", "https://api-1.adax.no/client-api/auth/token", strings.NewReader(data.Encode())) // URL-encoded payload
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 
 	res, err := client.Do(r)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	return string(body)
+	return string(body), nil
 }
 
-func getMetrics(ClientId string, ClientSecret string) string {
+func getMetrics(ClientId string, ClientSecret string) (string, error) {
 	// get token after JWT auth
-	token := getToken(ClientId, ClientSecret)
-	fmt.Println(token)
+	token, err := getToken(ClientId, ClientSecret)
+
+	if err != nil {
+		return "", err
+	}
 
 	var bearer = "Bearer " + token
 	req, err := http.NewRequest("GET", "https://api-1.adax.no/client-api/rest/v1/control", nil)
+
+	if err != nil {
+		return "", err
+	}
 
 	// add auth header
 	req.Header.Add("Authorization", bearer)
@@ -110,12 +125,12 @@ func getMetrics(ClientId string, ClientSecret string) string {
 	resp, err := client.Do(req)
 
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	return string(body)
+	return string(body), nil
 }
