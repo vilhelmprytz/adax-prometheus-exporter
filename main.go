@@ -174,15 +174,24 @@ func getMetrics(ClientId string, ClientSecret string) (string, error) {
 	}
 
 	var metrics string
+	var room_temperatures string
+	var target_temperatures string
 
 	for _, home := range data.Homes {
 		for _, room := range data.Rooms {
 			if room.HomeId == home.Id {
-				metrics += fmt.Sprintf("room_temperature{home=\"%s\",room=\"%s\"} %f\n", home.Name, room.Name, room.Temperature/100)
-				metrics += fmt.Sprintf("room_target_temperature{home=\"%s\",room=\"%s\"} %f\n", home.Name, room.Name, room.TargetTemperature/100)
+				room_temperatures += fmt.Sprintf("room_temperature{home=\"%s\",room=\"%s\"} %f\n", home.Name, room.Name, room.Temperature/100)
+				target_temperatures += fmt.Sprintf("room_target_temperature{home=\"%s\",room=\"%s\"} %f\n", home.Name, room.Name, room.TargetTemperature/100)
 			}
 		}
 	}
+
+	metrics += "# HELP room_temperature The current room temperature\n"
+	metrics += "# TYPE room_temperature gauge\n"
+	metrics += room_temperatures
+	metrics += "# HELP room_target_temperature The target room temperature\n"
+	metrics += "# TYPE room_target_temperature gauge\n"
+	metrics += target_temperatures
 
 	return metrics, nil
 }
