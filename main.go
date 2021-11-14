@@ -84,6 +84,10 @@ func getToken(ClientId string, ClientSecret string) (string, error) {
 		return "", err
 	}
 
+	if response.StatusCode != 200 {
+		return "", fmt.Errorf("error getting token: %s", response.Status)
+	}
+
 	defer response.Body.Close()
 	body, err := ioutil.ReadAll(response.Body)
 
@@ -101,6 +105,59 @@ func getToken(ClientId string, ClientSecret string) (string, error) {
 	return token.AccessToken, nil
 }
 
+type Home struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+type Room struct {
+	Id                int     `json:"id"`
+	HomeId            int     `json:"homeId"`
+	Name              string  `json:"name"`
+	HeatingEnabled    bool    `json:"heatingEnabled"`
+	TargetTemperature float64 `json:"targetTemperature"`
+	Temperature       float64 `json:"temperature"`
+}
+
+type Data struct {
+	Homes []Home `json:"homes"`
+	Rooms []Room `json:"rooms"`
+}
+
+func getData(Token string) (Data, error) {
+	req, err := http.NewRequest("GET", "https://api-1.adax.no/client-api/rest/v1/content/", nil)
+
+	if err != nil {
+		return Data{}, err
+	}
+
+	// add auth header
+	req.Header.Add("Authorization", "Bearer "+Token)
+
+	// perform request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return Data{}, err
+	}
+
+	if resp.StatusCode != 200 {
+		return Data{}, fmt.Errorf("error getting homes: %s", resp.Status)
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return Data{}, err
+	}
+
+	var data Data
+	json.Unmarshal([]byte(string(body)), &data)
+
+	return data, nil
+}
+
 func getMetrics(ClientId string, ClientSecret string) (string, error) {
 	// get token after JWT auth
 	token, err := getToken(ClientId, ClientSecret)
@@ -109,27 +166,23 @@ func getMetrics(ClientId string, ClientSecret string) (string, error) {
 		return "", err
 	}
 
-	var bearer = "Bearer " + token
-	req, err := http.NewRequest("GET", "https://api-1.adax.no/client-api/rest/v1/control", nil)
+	// get data
+	data, err := getData(token)
 
 	if err != nil {
 		return "", err
 	}
 
-	// add auth header
-	req.Header.Add("Authorization", bearer)
+	var metrics string
 
-	// perform request
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	for _, home := range data.Homes {
+		for _, room := range data.Rooms {
+			if room.HomeId == home.Id {
+				metrics += fmt.Sprintf("room_temperature{home=\"%s\",room=\"%s\"} %f\n", home.Name, room.Name, room.Temperature/100)
+				metrics += fmt.Sprintf("room_target_temperature{home=\"%s\",room=\"%s\"} %f\n", home.Name, room.Name, room.TargetTemperature/100)
+			}
+		}
+	}
 
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-	return string(body), nil
+	return metrics, nil
 }
