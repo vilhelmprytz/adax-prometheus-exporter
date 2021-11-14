@@ -1,14 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
-	"strings"
 
 	"gopkg.in/yaml.v2"
 
@@ -75,31 +74,31 @@ func readConfig(path string) Config {
 }
 
 func getToken(ClientId string, ClientSecret string) (string, error) {
-	data := url.Values{
+	response, err := http.PostForm("https://api-1.adax.no/client-api/auth/token", url.Values{
 		"grant_type": {"password"},
 		"username":   {ClientId},
-		"password":   {ClientSecret},
-	}
+		"password":   {ClientSecret}})
 
-	client := &http.Client{}
-	r, err := http.NewRequest("POST", "https://api-1.adax.no/client-api/auth/token", strings.NewReader(data.Encode())) // URL-encoded payload
-	if err != nil {
-		return "", err
-	}
-	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	r.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
-
-	res, err := client.Do(r)
+	//okay, moving on...
 	if err != nil {
 		return "", err
 	}
 
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
+	defer response.Body.Close()
+	body, err := ioutil.ReadAll(response.Body)
+
 	if err != nil {
 		return "", err
 	}
-	return string(body), nil
+
+	type Token struct {
+		AccessToken string `json:"access_token"`
+	}
+
+	var token Token
+	json.Unmarshal([]byte(string(body)), &token)
+
+	return token.AccessToken, nil
 }
 
 func getMetrics(ClientId string, ClientSecret string) (string, error) {
