@@ -1,0 +1,12 @@
+services:
+    adax-prometheus-exporter:
+        build: ./
+        ports:
+            - "8080:8080"
+        restart: unless-stopped
+        environment:
+            - HTTP_PORT=8080
+            # get this from your adax app, Account -> Account ID
+            - CLIENT_ID=123
+            # create/get this from 3rd party integrations -> Remote API
+            - CLIENT_SECRET=abc
